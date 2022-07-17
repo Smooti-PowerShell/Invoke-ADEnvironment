@@ -1,58 +1,27 @@
 param (
 	[Parameter(Mandatory = $True)]
-	[string]$newHostName,
-
-	[Parameter(Mandatory = $True)]
-	[securestring]$password
+	[securestring]$DSRMPassword
 )
 
-# * Confirm we have an elevated session.
+Import-Module -Name .\modules\master.psm1
+
+# Confirm we have an elevated session.
 If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
 	Throw "You must run this from an elevated PowerShell session."
 }
 
-Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
-Import-Module -Name .\modules\master.psm1
+# Convert secure string to plain text
+$DSRMPassword = ConvertFrom-SecureString $DSRMPassword -AsPlainText -Force
 
-workflow Build-ADForrest {
-	param (
-		[Parameter (Mandatory = $True, HelpMessage = "ComputerName")]
-		[string]$newHostName,
+# Check password complexity
+Check-PasswordComplexity -Password $DSRMPassword
 
-		[Parameter (Mandatory = $True, HelpMessage = "Password for DSRM.")]
-		[securestring]$password
-	)
-
-	# Rename Domain Controller
-	Write-Verbose "Renaming computer..."
-	Rename-Computer -NewName $newHostName -Force -PassThru
-	Restart-Computer -Wait
-
-	# Installing AD Domain Services
-	Write-Verbose "Installing `"AD-Domain-Services`""
-
-	# AD Forrest parameters
-	$params = @{
-		CreateDnsDelegation           = $false
-		DatabasePath                  = 'C:\Windows\NTDS'
-		DomainMode                    = 'WinThreshold'
-		DomainName                    = 'testbed.local'
-		ForestMode                    = 'WinThreshold'
-		InstallDns                    = $true
-		LogPath                       = 'C:\Windows\NTDS'
-		NoRebootOnCompletion          = $true
-		SafeModeAdministratorPassword = $password
-		SysvolPath                    = 'C:\Windows\SYSVOL'
-		Force                         = $true
-	}
-
-	# Create Forrest
-	Install-ADDSForest @params
-	Restart-Computer -Wait
-
-	New-ADTestUsers
-
-}
+# Convert plain text password to secure string
+$DSRMPassword = ConvertTo-SecureString $DSRMPassword -AsPlainText -Force
 
 # Setup AD forrest
-Build-ADForrest $NewHostName $password
+Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+Build-ADForrest $NewHostName $DSRMPassword
+
+# Create test users
+New-ADTestUsers

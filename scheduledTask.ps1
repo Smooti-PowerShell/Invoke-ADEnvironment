@@ -1,6 +1,7 @@
-$taskName = "Test"
+`$taskName = "Test"
+$wfResumeScript = "Invoke-ADEnvironment-Resume.ps1"
 $taskExecute = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
-$taskArgument = "-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($env:PSScriptRoot)\reportstest-resume.ps1`”"
+$taskArgument = "-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($env:PSScriptRoot)\$($wfResumeScript)`”"
 
 # Remove task if exists
 Get-ScheduledTask -TaskName $taskName | Unregister-ScheduledTask -Confirm:$false
