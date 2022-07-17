@@ -16,6 +16,9 @@ If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentit
 	Throw ("You must run this from an elevated PowerShell session.")
 }
 
+#Getting information from the json file
+$config = Get-Content "$($env:PSScriptRoot)\config.json" | ConvertFrom-Json
+
 # Create test user accounts in active directory
 if ($CreateTestUsers) {
 	# Verify credentials locally
@@ -30,12 +33,14 @@ if ($CreateTestUsers) {
 
 	# Create active directory credentials
 	$adCreds = New-Object System.Management.Automation.PSCredential ("$($DomainName)\$env:UserName", $password)
-	$adCreds | Export-Clixml -Path "C:\tempCred.xml"
-	$scripty = "$($env:PSScriptRoot)\New-ADTestUsers.ps1"
+
+	# Export reusable items to temporary file
+	$adCreds | Export-Clixml -Path "C:\tempCred.xml" -Force
+	$scriptName = "$($env:PSScriptRoot)\New-ADTestUsers.ps1"
 	$params = @{
-		TaskName     = "Test"
+		TaskName     = $config.InvokeTask.TaskName
 		TaskExecute  = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
-		TaskArgument = "`"-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($scripty)`”"
+		TaskArgument = "`"-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($scriptName)`”"
 	}
 	
 	# Schedule task
