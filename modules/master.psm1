@@ -98,9 +98,6 @@ function Invoke-Task {
 		[string]$TaskName,
 
 		[Parameter(Mandatory = $True)]
-		[string]$ScriptName,
-
-		[Parameter(Mandatory = $True)]
 		[string]$TaskExecute,
 
 		[Parameter(Mandatory = $True)]
