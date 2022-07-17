@@ -1,5 +1,5 @@
 #Getting information from the json file
-$config = Get-Content "$($env:PSScriptRoot)\config.json" | ConvertFrom-Json
+$config = Get-Content "$($PSScriptRoot)\config.json" | ConvertFrom-Json
 
 # Create test users
 $adCreds = Import-Clixml "C:\tempCred.xml"

@@ -17,13 +17,13 @@ If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentit
 }
 
 #Getting information from the json file
-$config = Get-Content "$($env:PSScriptRoot)\config.json" | ConvertFrom-Json
+$config = Get-Content "$($PSScriptRoot)\config.json" | ConvertFrom-Json
 
 # Create test user accounts in active directory
 if ($CreateTestUsers) {
 	# Verify credentials locally
 	$creds = Get-Credential -UserName $env:UserName -Message "Local Account Password"
-	$password = $creds.GetNetworkCredential().Password
+	$password = $creds.Password
 	Add-Type -AssemblyName System.DirectoryServices.AccountManagement
 	$DS = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Machine)
 	$credentialsValid = $DS.ValidateCredentials($creds.UserName, $creds.GetNetworkCredential().Password)
@@ -36,7 +36,7 @@ if ($CreateTestUsers) {
 
 	# Export reusable items to temporary file
 	$adCreds | Export-Clixml -Path "C:\tempCred.xml" -Force
-	$scriptName = "$($env:PSScriptRoot)\New-ADTestUsers.ps1"
+	$scriptName = "$($PSScriptRoot)\New-ADTestUsers.ps1"
 	$params = @{
 		TaskName     = $config.InvokeTask.TaskName
 		TaskExecute  = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
