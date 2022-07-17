@@ -1,12 +1,23 @@
 param (
 	[Parameter(Mandatory = $True)]
+	[string]$newHostName,
+
+	[Parameter(Mandatory = $True)]
 	[securestring]$password
 )
 
-workflow setupADForrest {
+# * Confirm we have an elevated session.
+If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+	Throw "You must run this from an elevated PowerShell session."
+}
+
+Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+Import-Module -Name .\modules\master.psm1
+
+workflow Build-ADForrest {
 	param (
 		[Parameter (Mandatory = $True, HelpMessage = "ComputerName")]
-		[string]$computername,
+		[string]$newHostName,
 
 		[Parameter (Mandatory = $True, HelpMessage = "Password for DSRM.")]
 		[securestring]$password
@@ -14,12 +25,11 @@ workflow setupADForrest {
 
 	# Rename Domain Controller
 	Write-Verbose "Renaming computer..."
-	Rename-Computer -NewName $computername -Force -PassThru
+	Rename-Computer -NewName $newHostName -Force -PassThru
 	Restart-Computer -Wait
 
 	# Installing AD Domain Services
 	Write-Verbose "Installing `"AD-Domain-Services`""
-	Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 
 	# AD Forrest parameters
 	$params = @{
@@ -44,13 +54,5 @@ workflow setupADForrest {
 
 }
 
-# * Confirm we have an elevated session.
-If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-	Throw "You must run this from an elevated PowerShell session."
-}
-
-Import-Module -Name .\modules\workflow.psm1
-$domConHostName = Read-Host "Hostname for Domain Controller"
-
 # Setup AD forrest
-setupADForrest -computername $domConHostName -password $password
+Build-ADForrest $NewHostName $password
