@@ -2,8 +2,8 @@ param (
 	[Parameter(Mandatory = $True)]
 	[SecureString]$DSRMPassword,
 
-	[Parameter(Mandatory = $True)]
-	[string]$DomainName,
+	[Parameter(Mandatory = $False)]
+	[string]$DomainName = "testbed.local",
 
 	[Parameter(Mandatory = $False)]
 	[switch]$CreateTestUsers
