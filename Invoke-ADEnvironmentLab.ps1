@@ -1,6 +1,9 @@
 param (
 	[Parameter(Mandatory = $True)]
-	[SecureString]$DSRMPassword
+	[SecureString]$DSRMPassword,
+
+	[Parameter(Mandatory = $False)]
+	[switch]$CreateTestUsers
 )
 
 Import-Module -Name .\modules\master.psm1
@@ -9,6 +12,18 @@ Import-Module -Name .\modules\master.psm1
 # If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
 # 	Throw "You must run this from an elevated PowerShell session."
 # }
+
+# Schedule task
+if ($CreateTestUsers) {
+	$scripty = "$($env:PSScriptRoot)\New-ADTestUsers.ps1"
+	$params = @{
+		TaskName     = "Test"
+		TaskExecute  = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
+		TaskArgument = "`"-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($scripty)`”"
+	}
+	
+	Invoke-Task @params
+}
 
 # Convert secure string to plain text
 $DSRMUnencryptedPassword = ConvertFrom-SecureString -SecureString $DSRMPassword -AsPlainText
@@ -22,17 +37,6 @@ $DSRMPassword = ConvertTo-SecureString $DSRMUnencryptedPassword -AsPlainText -Fo
 # Setup AD forrest
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 Build-ADForrest -DSRMPassword $DSRMPassword -DomainName "testbed.local"
-
-$scriptName = "New-ADTestUsers.ps1"
-$params = @{
-	TaskName = "Test"
-	ScriptName = $scriptName
-	TaskExecute = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
-	TaskArgument = "`"-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($env:PSScriptRoot)\$($scriptName)`”"
-}
-
-# Schedule task
-Invoke-Task @params
 
 # Apply changes
 Restart-Computer
