@@ -24,7 +24,7 @@ if ($CreateTestUsers) {
 	# Verify credentials locally
 	$creds = Get-Credential -UserName $env:UserName -Message "Local Account Password"
 	$password = $creds.GetNetworkCredential().Password
-	Add-Type -AssemblyName System.DirectoryServices.AccountManagement 
+	Add-Type -AssemblyName System.DirectoryServices.AccountManagement
 	$DS = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Machine)
 	$credentialsValid = $DS.ValidateCredentials("smooti", $creds.GetNetworkCredential().Password)
 	if ($credentialsValid -ne "True") {
@@ -42,7 +42,7 @@ if ($CreateTestUsers) {
 		TaskExecute  = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
 		TaskArgument = "`"-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($scriptName)`”"
 	}
-	
+
 	# Schedule task
 	Invoke-Task @params
 }
