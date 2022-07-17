@@ -4,8 +4,10 @@ function Build-ADForrest {
 		[securestring]$DSRMPassword,
 
 		[Parameter (Mandatory = $True)]
-		[securestring]$DomainName
+		[string]$DomainName
 	)
+
+	$ErrorActionPreference = "Stop"
 
 	# Installing AD Domain Services
 	Write-Verbose "Installing `"AD-Domain-Services`""
@@ -104,17 +106,21 @@ function Invoke-Task {
 		[string]$TaskArgument
 	)
 
+	$ErrorActionPreference = "Stop"
+
 	# Remove task if exists
 	Get-ScheduledTask -TaskName $TaskName -ErrorAction Ignore | Unregister-ScheduledTask -Confirm:$false
 
 	# Setup task
 	$taskAction = New-ScheduledTaskAction -Execute $TaskExecute -Argument $TaskArgument
 	$taskTrigger = New-ScheduledTaskTrigger -AtStartup
+	$taskSetting = New-ScheduledTaskSettingsSet -MultipleInstances Parallel
 	$params = @{
 		TaskName = $TaskName
 		Action   = $taskAction
 		Trigger  = $taskTrigger
 		RunLevel = "Highest"
+		Settings = $taskSetting
 	}
 
 	# Register Task
