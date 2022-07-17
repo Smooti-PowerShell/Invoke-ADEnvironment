@@ -1,44 +1,39 @@
-function New-ADTestUsers {
-	$testUsers = @("Robb Stark", "Theon Greyjoy", "Ned Stark", "Aria Stark")
-	foreach ($user in $testUsers) {
-		New-ADUser -Name $user -Enabled $False
+function Build-ADForrest {
+	param (
+		[Parameter (Mandatory = $True)]
+		[securestring]$DSRMPassword,
+
+		[Parameter (Mandatory = $True)]
+		[securestring]$DomainName
+	)
+
+	# Installing AD Domain Services
+	Write-Verbose "Installing `"AD-Domain-Services`""
+
+	# AD Forrest parameters
+	$params = @{
+		CreateDnsDelegation           = $false
+		DatabasePath                  = 'C:\Windows\NTDS'
+		DomainMode                    = 'WinThreshold'
+		DomainName                    = $DomainName
+		ForestMode                    = 'WinThreshold'
+		InstallDns                    = $true
+		SafeModeAdministratorPassword = $DSRMPassword
+		LogPath                       = 'C:\Windows\NTDS'
+		NoRebootOnCompletion          = $true
+		SysvolPath                    = 'C:\Windows\SYSVOL'
+		Force                         = $true
 	}
+
+	# Create Forrest
+	Install-ADDSForest @params
 }
 
-function Build-ADForrest{
+function Invoke-PasswordComplexity {
 	param (
-	[Parameter (Mandatory = $True, HelpMessage = "Password for DSRM.")]
-	[securestring]$DSRMPassword
-)
-
-# Installing AD Domain Services
-Write-Verbose "Installing `"AD-Domain-Services`""
-
-# AD Forrest parameters
-$params = @{
-	CreateDnsDelegation           = $false
-	DatabasePath                  = 'C:\Windows\NTDS'
-	DomainMode                    = 'WinThreshold'
-	DomainName                    = 'testbed.local'
-	ForestMode                    = 'WinThreshold'
-	InstallDns                    = $true
-	SafeModeAdministratorPassword = $DSRMPassword
-	LogPath                       = 'C:\Windows\NTDS'
-	NoRebootOnCompletion          = $true
-	SysvolPath                    = 'C:\Windows\SYSVOL'
-	Force                         = $true
-}
-
-# Create Forrest
-Install-ADDSForest @params
-Restart-Computer -Wait
-}
-
-function Check-PasswordComplexity {
-	param (
-	[Parameter(Mandatory = $True)]
-	[string]$Password
-)
+		[Parameter(Mandatory = $True)]
+		[string]$Password
+	)
 	# Password Check
 	$minLength = 7
 	$minRequirements = 3
@@ -90,9 +85,41 @@ function Check-PasswordComplexity {
 		$requirementsCount = $requirements.Count
 
 		foreach ($message in $errorMessages) {
-			Write-Host ($message)
+			Write-Host ($message) -ForegroundColor Red
 		}
 
 		throw ("The password must meet at least $minRequirements out of $requirementsCount complexity requirements.")
 	}
+}
+
+function Invoke-Task {
+	param (
+		[Parameter(Mandatory = $True)]
+		[string]$TaskName,
+
+		[Parameter(Mandatory = $True)]
+		[string]$ScriptName,
+
+		[Parameter(Mandatory = $True)]
+		[string]$TaskExecute,
+
+		[Parameter(Mandatory = $True)]
+		[string]$TaskArgument
+	)
+
+	# Remove task if exists
+	Get-ScheduledTask -TaskName $TaskName -ErrorAction Ignore | Unregister-ScheduledTask -Confirm:$false
+
+	# Setup task
+	$taskAction = New-ScheduledTaskAction -Execute $TaskExecute -Argument $TaskArgument
+	$taskTrigger = New-ScheduledTaskTrigger -AtStartup
+	$params = @{
+		TaskName = $TaskName
+		Action   = $taskAction
+		Trigger  = $taskTrigger
+		RunLevel = "Highest"
+	}
+
+	# Register Task
+	Register-ScheduledTask @params
 }
