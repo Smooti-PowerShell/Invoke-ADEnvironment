@@ -40,25 +40,22 @@ if ($CreateTestUsers) {
 	$params = @{
 		TaskName     = $config.InvokeTask.TaskName
 		TaskExecute  = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
-		TaskArgument = "`"-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“&`”$($scriptName)`”"
+		TaskArgument = "-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“& $($scriptName)`”"
 	}
 
 	# Schedule task
 	Invoke-Task @params
 }
 
-# Convert secure string to plain text
-$DSRMUnencryptedPassword = ConvertFrom-SecureString -SecureString $DSRMPassword -AsPlainText
-
-# Check password complexity
-Invoke-PasswordComplexity -Password $DSRMUnencryptedPassword
-
-# Convert plain text password to secure string
-$DSRMPassword = ConvertTo-SecureString $DSRMUnencryptedPassword -AsPlainText -Force
-
 # Setup AD forrest
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
-Build-ADForrest -DSRMPassword $DSRMPassword -DomainName $DomainName
 
+Try {
+	Build-ADForrest -DSRMPassword $DSRMPassword -DomainName $DomainName
+	Read-Host ("Press enter to reboot the machine and finish the install.")
+}
+Catch {
+
+}
 # Apply changes
 Restart-Computer
