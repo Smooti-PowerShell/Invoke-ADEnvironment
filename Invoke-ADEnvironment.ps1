@@ -40,7 +40,7 @@ if ($CreateTestUsers) {
 	$params = @{
 		TaskName     = $config.InvokeTask.TaskName
 		TaskExecute  = “$($Env:SystemRoot)\System32\WindowsPowerShell\v1.0\powershell.exe”
-		TaskArgument = "-NonInteractive -WindowStyle Normal -NoLogo -NoProfile -NoExit -Command `“& $($scriptName)`”"
+		TaskArgument = "-NonInteractive -WindowStyle Hidden -NoLogo -NoProfile -Command `“& $($scriptName)`”"
 	}
 
 	# Schedule task
@@ -52,7 +52,7 @@ Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 
 Try {
 	Build-ADForrest -DSRMPassword $DSRMPassword -DomainName $DomainName
-	Read-Host ("Press enter to reboot the machine and finish the install.")
+	Read-Host ("Press enter to reboot the machine and finish the install")
 }
 Catch {
 
