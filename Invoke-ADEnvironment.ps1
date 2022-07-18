@@ -55,7 +55,7 @@ Try {
 	Read-Host ("Press enter to reboot the machine and finish the install")
 }
 Catch {
-
+	Throw ($_)
 }
 # Apply changes
 Restart-Computer
