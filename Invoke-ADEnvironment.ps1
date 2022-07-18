@@ -19,6 +19,7 @@ If (-NOT([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentit
 #Getting information from the json file
 $config = Get-Content "$($PSScriptRoot)\config.json" | ConvertFrom-Json
 
+# TODO The task is running but not creating the users. Why?
 # Create test user accounts in active directory
 if ($CreateTestUsers) {
 	# Verify credentials locally
