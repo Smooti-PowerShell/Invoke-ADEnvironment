@@ -115,12 +115,13 @@ function Invoke-Task {
 	$taskAction = New-ScheduledTaskAction -Execute $TaskExecute -Argument $TaskArgument
 	$taskTrigger = New-ScheduledTaskTrigger -AtStartup
 	$taskSetting = New-ScheduledTaskSettingsSet -MultipleInstances Parallel
+	$taskPrincipal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 	$params = @{
 		TaskName = $TaskName
 		Action   = $taskAction
 		Trigger  = $taskTrigger
-		RunLevel = "Highest"
 		Settings = $taskSetting
+		Principal = $taskPrincipal
 	}
 
 	# Register Task
