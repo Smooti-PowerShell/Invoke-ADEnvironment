@@ -50,6 +50,7 @@ if ($CreateTestUsers) {
 
 # Setup AD forrest
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+Import-Module ADDSDeployment
 
 Try {
 	Build-ADForrest -DSRMPassword $DSRMPassword -DomainName $DomainName
