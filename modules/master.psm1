@@ -1,4 +1,4 @@
-function Build-ADForrest {
+function Invoke-Forrest {
 	param (
 		[Parameter (Mandatory = $True)]
 		[securestring]$DSRMPassword,
